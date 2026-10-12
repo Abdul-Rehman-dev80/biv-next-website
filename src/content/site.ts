@@ -1,22 +1,18 @@
 /**
- * Business and brand details used across the site. Everything here is either
- * taken from the client's existing site (biv.com.au) or is a brand decision for
- * valuationcertificates.com.au. Change values here rather than in components.
+ * Business and brand details used across the site, taken from the existing
+ * biv.com.au site. Change values here rather than in components.
  */
 export const site = {
-  name: "Valuation Certificates",
+  name: "BIV Reports",
   /** Legal entity that provides the services (from the existing site's footer and legal page). */
   legalName: "BIV Reports Pty Limited",
-  url: "https://valuationcertificates.com.au",
+  url: "https://www.biv.com.au",
   locale: "en_AU",
   tagline: "Insurance valuations and strata compliance reports, done properly.",
   description:
     "Registered Valuers preparing building insurance valuations, capital works and sinking fund plans, WHS safety reports and asbestos reports for strata and community schemes across Australia.",
   phone: { display: "1300 107 280", href: "tel:1300107280", e164: "+611300107280" },
-  /**
-   * Public enquiry address. The existing site publishes biv@biv.com.au; swap this
-   * for a valuationcertificates.com.au mailbox once one exists.
-   */
+  /** Public enquiry address, as published on the existing site. */
   email: "biv@biv.com.au",
   foundingYear: 1983,
   copyrightStartYear: 2008,

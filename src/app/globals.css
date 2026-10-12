@@ -6,29 +6,38 @@
  */
 @theme {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
 
-  --color-ink-950: #06121f;
-  --color-ink-900: #0b1f33;
-  --color-ink-800: #132c47;
-  --color-ink-700: #1e3a5c;
+  --color-ink-950: #0a1024;
+  --color-ink-900: #111a36;
+  --color-ink-800: #1b2548;
+  --color-ink-700: #27335c;
 
-  --color-brand-50: #ecfdf8;
-  --color-brand-100: #d1faee;
-  --color-brand-200: #a6f2dd;
-  --color-brand-300: #6de4c7;
-  --color-brand-400: #34cdad;
-  --color-brand-500: #12b294;
-  --color-brand-600: #08806d;
-  --color-brand-700: #0b7263;
-  --color-brand-800: #0e5a50;
-  --color-brand-900: #0f4a43;
+  /* BIV blue, from the logo (#3f56a2 is brand-600). */
+  --color-brand-50: #eef1fa;
+  --color-brand-100: #dde3f4;
+  --color-brand-200: #bcc7ea;
+  --color-brand-300: #93a6dc;
+  --color-brand-400: #6d85cc;
+  --color-brand-500: #4f69b8;
+  --color-brand-600: #3f56a2;
+  --color-brand-700: #34478a;
+  --color-brand-800: #2a3970;
+  --color-brand-900: #212d58;
+  --color-brand-950: #141b38;
 
-  --color-gold-300: #f9d77e;
-  --color-gold-400: #f5c04a;
-  --color-gold-500: #e9a621;
+  --color-gold-300: #f1dc7a;
+  --color-gold-400: #e7c733;
+  --color-gold-500: #c9a81c;
 
-  --color-paper: #f6f8f7;
-  --color-line: #e2e8ec;
+  /* The four diamonds of the BIV mark, one per service. */
+  --color-diamond-blue: #3f56a2;
+  --color-diamond-green: #599b51;
+  --color-diamond-yellow: #e7c733;
+  --color-diamond-red: #cc222e;
+
+  --color-paper: #f5f6fa;
+  --color-line: #e1e5ef;
 
   --radius-card: 1.25rem;
   --shadow-card: 0 1px 2px rgb(11 31 51 / 0.04), 0 8px 24px -12px rgb(11 31 51 / 0.12);
@@ -110,9 +119,137 @@
   }
 }
 
+/*
+ * Scroll motion. ScrollDriver (components/motion) writes --p (0 to 1) on every
+ * [data-scroll] element and --page-p on <html>; everything below is styling.
+ * Without JavaScript or with reduced motion, each effect shows its end state.
+ */
+:root {
+  --page-p: 0;
+  --header-h: 4.5rem;
+}
+
+[data-scroll] {
+  --p: 0;
+}
+
+/* Sub-range of a scene: --t runs 0 to 1 while --p runs from --a to --b. */
+.seg {
+  --t: clamp(0, calc((var(--p) - var(--a, 0)) / (var(--b, 1) - var(--a, 0))), 1);
+}
+
+.pin {
+  position: relative;
+  height: calc(var(--len, 3) * 100svh);
+}
+.pin > .pin-stage {
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100svh - var(--header-h));
+  overflow: hidden;
+}
+
+/* Words light up one after another as the scene scrolls. */
+.words > span {
+  opacity: clamp(0.18, calc(var(--p) * (var(--n) + 4) * 1.15 - var(--i)), 1);
+}
+
+/* A number that counts up to --to as --t goes from 0 to 1. */
+@property --scrub-n {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+.scrub-num {
+  --scrub-n: calc(var(--t, 1) * var(--to));
+  counter-reset: scrub var(--scrub-n);
+}
+.scrub-num::after {
+  content: counter(scrub);
+}
+
+/* A horizontal track that slides from its first card to its last. */
+.h-track {
+  display: flex;
+  width: max-content;
+  transform: translate3d(calc(var(--p) * (100vw - 100%)), 0, 0);
+  will-change: transform;
+}
+
+[data-reveal],
+[data-reveal-children] > * {
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.js [data-reveal]:not([data-revealed]),
+.js [data-reveal-children] > :not([data-revealed]) {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+}
+[data-reveal-children] > :nth-child(2) {
+  --i: 1;
+}
+[data-reveal-children] > :nth-child(3) {
+  --i: 2;
+}
+[data-reveal-children] > :nth-child(4) {
+  --i: 3;
+}
+[data-reveal-children] > :nth-child(n + 5) {
+  --i: 4;
+}
+
+html:not(.js) [data-scroll] {
+  --p: 1 !important;
+}
+html:not(.js) [data-scroll="exit"] {
+  --p: 0 !important;
+}
+html:not(.js) .pin {
+  height: auto;
+}
+html:not(.js) .pin > .pin-stage {
+  position: relative;
+  top: 0;
+  height: auto;
+  min-height: calc(100svh - var(--header-h));
+}
+html:not(.js) .h-track {
+  width: auto;
+  flex-wrap: wrap;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  [data-scroll] {
+    --p: 1 !important;
+  }
+  [data-scroll="exit"] {
+    --p: 0 !important;
+  }
+  .pin {
+    height: auto;
+  }
+  .pin > .pin-stage {
+    position: relative;
+    top: 0;
+    height: auto;
+    min-height: calc(100svh - var(--header-h));
+  }
+  .h-track {
+    width: auto;
+    flex-wrap: wrap;
+    transform: none;
+  }
+  .js [data-reveal]:not([data-revealed]),
+  .js [data-reveal-children] > :not([data-revealed]) {
+    opacity: 1;
+    transform: none;
   }
   *,
   *::before,

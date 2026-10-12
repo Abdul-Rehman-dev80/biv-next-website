@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { ScrollDriver } from "@/components/motion/scroll-driver";
 import { JsonLd } from "@/components/seo/json-ld";
 import { site } from "@/content/site";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
@@ -22,14 +23,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b7263",
+  themeColor: "#3f56a2",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-AU" className={jakarta.variable}>
+    // The inline script marks JavaScript as available before first paint, so
+    // scroll effects can start hidden without hiding content from no-JS visitors.
+    <html lang="en-AU" className={jakarta.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
       <body className="flex min-h-dvh flex-col">
         <a
           href="#main"
@@ -42,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        <ScrollDriver />
         <JsonLd data={[organizationSchema(), websiteSchema()]} />
       </body>
     </html>

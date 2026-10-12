@@ -5,10 +5,10 @@ import { faqPages } from "@/content/faqs";
 
 describe("seo helpers", () => {
   it("builds canonical URLs on the target domain with trailing slashes", () => {
-    expect(absoluteUrl("/services/biv/")).toBe("https://valuationcertificates.com.au/services/biv/");
+    expect(absoluteUrl("/services/biv/")).toBe("https://www.biv.com.au/services/biv/");
     const meta = pageMetadata({ title: "T", description: "D", path: "/about-us/" });
-    expect(meta.alternates?.canonical).toBe("https://valuationcertificates.com.au/about-us/");
-    expect(meta.openGraph?.url).toBe("https://valuationcertificates.com.au/about-us/");
+    expect(meta.alternates?.canonical).toBe("https://www.biv.com.au/about-us/");
+    expect(meta.openGraph?.url).toBe("https://www.biv.com.au/about-us/");
   });
 
   it("marks noIndex pages", () => {

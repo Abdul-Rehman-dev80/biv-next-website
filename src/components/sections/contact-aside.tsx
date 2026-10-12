@@ -3,7 +3,7 @@ import { MailIcon, PhoneIcon, ShieldIcon } from "@/components/ui/icons";
 
 export function ContactAside() {
   return (
-    <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Other ways to reach us">
+    <aside data-reveal-children className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Other ways to reach us">
       <div className="rounded-card bg-ink-900 p-7 text-slate-300">
         <h2 className="text-lg font-semibold text-white">Prefer to talk?</h2>
         <p className="mt-2 text-sm leading-relaxed">Call us during business hours, or email your instructions and plans.</p>

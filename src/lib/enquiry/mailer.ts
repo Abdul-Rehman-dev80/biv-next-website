@@ -8,7 +8,7 @@ export type SendEnquiry = (enquiry: Enquiry) => Promise<boolean>;
 export function formatEnquiryEmail(e: Enquiry): { subject: string; text: string } {
   const dash = (v: string) => (v === "" ? "-" : v);
   const text = [
-    "New enquiry from valuationcertificates.com.au",
+    "New enquiry from biv.com.au",
     "",
     "Services:",
     ...e.services.map((s) => `  - ${s}`),
@@ -63,7 +63,7 @@ export function createMailer(env: NodeJS.ProcessEnv = process.env): SendEnquiry 
     const { subject, text } = formatEnquiryEmail(enquiry);
     try {
       await transport.sendMail({
-        from: { name: "Valuation Certificates website", address: ENQUIRY_FROM },
+        from: { name: "BIV Reports website", address: ENQUIRY_FROM },
         to: ENQUIRY_TO,
         replyTo: { name: enquiry.name, address: enquiry.email },
         subject,

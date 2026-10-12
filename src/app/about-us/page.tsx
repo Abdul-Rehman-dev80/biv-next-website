@@ -43,7 +43,7 @@ export default function AboutPage() {
       />
 
       <section aria-labelledby="history-heading" className="py-16 sm:py-24">
-        <Container className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+        <Container data-reveal-children className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
           <div>
             <SectionHeading id="history-heading" eyebrow="Our history" title="Forty years of experience, from cottages to landmark deals" />
             <div className="mt-6 space-y-5 text-lg leading-relaxed text-slate-700">
@@ -72,7 +72,7 @@ export default function AboutPage() {
       <section aria-labelledby="values-heading" className="bg-paper py-16 sm:py-24">
         <Container>
           <SectionHeading id="values-heading" eyebrow="Our values" title="How we work" align="center" />
-          <ul className="mt-12 grid gap-5 md:grid-cols-2">
+          <ul data-reveal-children className="mt-12 grid gap-5 md:grid-cols-2">
             {values.map((v, i) => (
               <li key={v.title} className="rounded-card border border-line bg-white p-7 shadow-card">
                 <span className="text-sm font-bold text-brand-600 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
@@ -85,7 +85,7 @@ export default function AboutPage() {
       </section>
 
       <section aria-label="Vision and mission" className="py-16 sm:py-24">
-        <Container className="grid gap-6 md:grid-cols-2">
+        <Container data-reveal-children className="grid gap-6 md:grid-cols-2">
           <div className="rounded-card bg-ink-900 p-8 sm:p-10">
             <h2 className="text-2xl font-bold text-white">Our vision</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-300">

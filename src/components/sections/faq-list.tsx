@@ -4,7 +4,7 @@ import { ChevronDownIcon } from "@/components/ui/icons";
 /** Native <details> accordions: keyboard and screen-reader friendly with no JavaScript. */
 export function FaqList({ faqs }: { faqs: Faq[] }) {
   return (
-    <div className="divide-y divide-line rounded-card border border-line bg-white shadow-card">
+    <div data-reveal-children className="divide-y divide-line rounded-card border border-line bg-white shadow-card">
       {faqs.map((faq, i) => (
         <details key={faq.question} className="group" open={i === 0}>
           <summary className="flex cursor-pointer list-none items-start justify-between gap-6 px-5 py-5 sm:px-7 [&::-webkit-details-marker]:hidden">

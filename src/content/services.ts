@@ -1,7 +1,6 @@
 /**
  * Service page content. Facts (legislation, figures, process steps) come from
- * the client's existing service pages; the wording is written fresh for this
- * domain so it does not duplicate biv.com.au.
+ * the existing biv.com.au service pages, edited for clarity.
  */
 
 export type ServiceSlug = "biv" | "sfp" | "whs" | "asb";
@@ -379,6 +378,14 @@ export const services: Service[] = [
     faqLabel: "Asbestos report FAQs",
   },
 ];
+
+/** Each service takes one of the four diamonds in the BIV mark. */
+export const serviceDiamond: Record<ServiceSlug, "blue" | "green" | "yellow" | "red"> = {
+  biv: "blue",
+  sfp: "green",
+  whs: "yellow",
+  asb: "red",
+};
 
 export function getService(slug: string): Service | undefined {
   return services.find((s) => s.slug === slug);

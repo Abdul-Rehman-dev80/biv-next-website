@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { SMTP_SINK_FILE } from "../../playwright.config";
 import { indexableRoutes } from "../../src/content/routes";
 
-const DOMAIN = "https://valuationcertificates.com.au";
+const DOMAIN = "https://www.biv.com.au";
 
 test.describe("every indexable route", () => {
   for (const { path } of indexableRoutes) {
@@ -25,11 +25,11 @@ test.describe("every indexable route", () => {
       const description = await page.locator('meta[name="description"]').getAttribute("content");
       expect(description?.length).toBeGreaterThan(50);
 
-      // No other domains leak into metadata or structured data.
+      // Metadata and structured data only point at the real domain.
       const head = await page.locator("head").innerHTML();
       const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
       for (const text of [head, ...ld]) {
-        expect(text).not.toMatch(/biv\.com\.au|supervals\.com\.au|strataproperty\.com\.au/);
+        expect(text).not.toMatch(/valuationcertificates|supervals\.com\.au|strataproperty\.com\.au|localhost|vercel\.app/);
       }
       for (const json of ld) expect(() => JSON.parse(json)).not.toThrow();
 
@@ -200,3 +200,42 @@ async function fillNoJs(page: Page, name: string) {
   await page.getByLabel("Property address").fill("2 Example Road, Wagga Wagga NSW");
   await page.getByText("Email back", { exact: true }).click();
 }
+
+test.describe("scroll effects", () => {
+  const opacity = (page: Page, selector: string) =>
+    page.locator(selector).first().evaluate((el) => Number(getComputedStyle(el).opacity));
+
+  test("pinned scenes track scroll progress", async ({ page }) => {
+    await page.goto("/");
+    const scene = page.locator('[data-scroll="pin"]').first();
+    const progress = () => scene.evaluate((el) => Number(getComputedStyle(el).getPropertyValue("--p")));
+    expect(await progress()).toBe(0);
+    // Service text starts hidden and fades in as the diamonds settle.
+    expect(await opacity(page, "#services-heading ~ * li .seg, [data-diamond-home] + .seg")).toBeLessThan(0.1);
+    const { top, height } = await scene.evaluate((el) => ({ top: el.getBoundingClientRect().top + scrollY, height: el.getBoundingClientRect().height }));
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), top + height * 0.6);
+    await expect.poll(progress).toBeGreaterThan(0.6);
+    await expect.poll(() => opacity(page, "[data-diamond-home] + .seg")).toBeGreaterThan(0.9);
+  });
+
+  for (const mode of ["reduced motion", "no JavaScript"] as const) {
+    test(`with ${mode}, every scene shows its end state`, async ({ browser }, info) => {
+      test.skip(info.project.name !== "desktop", "one run is enough");
+      const context = await browser.newContext(
+        mode === "reduced motion" ? { reducedMotion: "reduce" } : { javaScriptEnabled: false },
+      );
+      const page = await context.newPage();
+      await page.goto("/");
+      await expect(page.locator("h1")).toBeVisible();
+      for (const sel of ["[data-diamond-home] + .seg", "#stats-heading", ".words > span:last-child"]) {
+        expect(await opacity(page, sel)).toBe(1);
+      }
+      // Pinned sections collapse instead of adding empty scroll distance.
+      const extra = await page
+        .locator(".pin")
+        .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height - el.firstElementChild!.getBoundingClientRect().height));
+      for (const px of extra) expect(px).toBeLessThan(2);
+      await context.close();
+    });
+  }
+});
