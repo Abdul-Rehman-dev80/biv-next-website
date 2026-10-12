@@ -145,7 +145,7 @@ export function SiteNav({ items, phone, children }: Props) {
 
       <div className="flex items-center gap-2">
         {children}
-        <Link href="/quote-request/" className={buttonClasses("primary", "md", "hidden sm:inline-flex")}>
+        <Link href="/quote-request/" className={buttonClasses("primary", "md", "max-sm:hidden")}>
           Request a quote
         </Link>
         <button

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useForm, type FieldPath } from "react-hook-form";
 import { buttonClasses } from "@/components/ui/button";
 import { AlertIcon, CheckIcon } from "@/components/ui/icons";
@@ -16,28 +16,26 @@ import {
   enquirySchema,
   type Enquiry,
   type EnquiryInput,
-} from "@/lib/enquiry-schema";
-import { ENQUIRY_ENDPOINT } from "@/lib/enquiry-endpoint";
+} from "@/lib/enquiry/schema";
+import { submitEnquiry } from "@/app/actions/enquiry";
+import { GENERIC_ERROR, type EnquiryState } from "@/lib/enquiry/state";
 import { site } from "@/content/site";
-
-type Status =
-  | { state: "idle" }
-  | { state: "submitting" }
-  | { state: "success" }
-  | { state: "error"; message: string };
-
-type ServerResponse = { ok: true } | { ok: false; message?: string; errors?: Partial<Record<string, string>> };
-
-const GENERIC_ERROR = `Sorry, we couldn't send your request just now. Please try again, or call us on ${site.phone.display}.`;
 
 export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string[] }) {
   const formId = useId();
-  const [status, setStatus] = useState<Status>({ state: "idle" });
+  // `formAction` handles submissions made without JavaScript (the page re-renders
+  // with the result). With JavaScript, onSubmit calls the action directly so a
+  // network failure becomes a friendly message instead of an error page.
+  const [noJsState, formAction] = useActionState<EnquiryState, FormData>(submitEnquiry, { status: "idle" });
+  const [clientState, setClientState] = useState<EnquiryState | null>(null);
+  const [pending, startTransition] = useTransition();
+  const state = clientState ?? noJsState;
+  // The success panel stays until the visitor chooses to send another request.
+  const [dismissed, setDismissed] = useState<EnquiryState | null>(null);
   // Time of first interaction, so the server can reject submissions made faster than a person could type.
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const successRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
-
 
   const {
     register,
@@ -64,44 +62,40 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
     },
   });
 
+  const showSuccess = state.status === "success" && dismissed !== state;
+
+  // Apply the server's verdict: field errors onto the inputs, focus on the message.
   useEffect(() => {
-    if (status.state === "success") successRef.current?.focus();
-    if (status.state === "error") errorRef.current?.focus();
-  }, [status]);
-
-  const onSubmit = handleSubmit(async (data, event) => {
-    setStatus({ state: "submitting" });
-    const form = event?.target as HTMLFormElement | undefined;
-    const honeypot = (form?.elements.namedItem(HONEYPOT_FIELD) as HTMLInputElement | null)?.value ?? "";
-
-    try {
-      const res = await fetch(ENQUIRY_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ ...data, [HONEYPOT_FIELD]: honeypot, [STARTED_AT_FIELD]: startedAt === null ? "" : String(startedAt) }),
-      });
-      const body = (await res.json().catch(() => null)) as ServerResponse | null;
-
-      if (res.ok && body?.ok) {
-        reset();
-        setStatus({ state: "success" });
-        return;
+    if (state.status === "success") {
+      reset();
+      successRef.current?.focus();
+    } else if (state.status === "error") {
+      for (const [field, message] of Object.entries(state.errors ?? {})) {
+        if (message) setError(field as FieldPath<EnquiryInput>, { message });
       }
-      if (body && !body.ok && body.errors) {
-        for (const [field, message] of Object.entries(body.errors)) {
-          if (message) setError(field as FieldPath<EnquiryInput>, { message });
-        }
-      }
-      setStatus({
-        state: "error",
-        message: (body && !body.ok && body.message) || GENERIC_ERROR,
-      });
-    } catch {
-      setStatus({ state: "error", message: GENERIC_ERROR });
+      errorRef.current?.focus();
     }
-  });
+  }, [state, reset, setError]);
 
-  if (status.state === "success") {
+  // Validate in the browser first; only valid forms reach the server action.
+  // Without JavaScript the form posts straight to the server action instead.
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    void handleSubmit(() => {
+      const data = new FormData(form);
+      startTransition(async () => {
+        try {
+          const result = await submitEnquiry(state, data);
+          startTransition(() => setClientState(result));
+        } catch {
+          startTransition(() => setClientState({ status: "error", message: GENERIC_ERROR }));
+        }
+      });
+    })(event);
+  };
+
+  if (showSuccess) {
     return (
       <div
         ref={successRef}
@@ -123,7 +117,7 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
         </p>
         <button
           type="button"
-          onClick={() => setStatus({ state: "idle" })}
+          onClick={() => setDismissed(state)}
           className={buttonClasses("secondary", "md", "mt-6")}
         >
           Send another request
@@ -132,15 +126,14 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
     );
   }
 
-  const submitting = status.state === "submitting";
+  const submitting = pending;
   const fieldId = (name: string) => `${formId}-${name}`;
   const errorId = (name: string) => `${formId}-${name}-error`;
   const describedBy = (name: keyof EnquiryInput) => (errors[name] ? errorId(name) : undefined);
 
   return (
     <form
-      action={ENQUIRY_ENDPOINT}
-      method="post"
+      action={formAction}
       noValidate
       onSubmit={onSubmit}
       onFocusCapture={() => {
@@ -149,7 +142,7 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
       aria-busy={submitting}
       className="space-y-10"
     >
-      {status.state === "error" && (
+      {state.status === "error" && !pending && (
         <div
           ref={errorRef}
           tabIndex={-1}
@@ -157,7 +150,7 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
           className="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 outline-none"
         >
           <AlertIcon className="mt-0.5 size-5 shrink-0 text-red-700" />
-          <p>{status.message}</p>
+          <p>{state.message}</p>
         </div>
       )}
 
@@ -347,6 +340,8 @@ export function EnquiryForm({ defaultServices = [] }: { defaultServices?: string
         <label htmlFor={fieldId(HONEYPOT_FIELD)}>Leave this field empty</label>
         <input id={fieldId(HONEYPOT_FIELD)} type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" defaultValue="" />
       </div>
+
+      <input type="hidden" name={STARTED_AT_FIELD} value={startedAt ?? ""} />
 
       <div className="flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">

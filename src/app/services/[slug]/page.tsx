@@ -114,7 +114,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
                 Alongside this report we also prepare{" "}
                 {others.map((s, i) => (
                   <span key={s.slug}>
-                    <Link href={`/services/${s.slug}/`}>{s.shortName.toLowerCase()}</Link>
+                    <Link href={`/services/${s.slug}/`}>{s.phrase}</Link>
                     {i < others.length - 2 ? ", " : i === others.length - 2 ? " and " : ""}
                   </span>
                 ))}

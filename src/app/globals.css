@@ -84,8 +84,11 @@
   .prose-site {
     @apply max-w-none text-base leading-relaxed text-slate-700 sm:text-[1.0625rem];
   }
-  .prose-site > * + * {
+  .prose-site * + :where(p, ul, ol, section, div, h3) {
     @apply mt-5;
+  }
+  .prose-site h2 + * {
+    @apply mt-4;
   }
   .prose-site h2 {
     @apply mt-12 text-2xl font-semibold sm:text-3xl;

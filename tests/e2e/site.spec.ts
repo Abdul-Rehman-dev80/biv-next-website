@@ -1,5 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { expect, test, type Page } from "@playwright/test";
+import { SMTP_SINK_FILE } from "../../playwright.config";
 import { indexableRoutes } from "../../src/content/routes";
 
 const DOMAIN = "https://valuationcertificates.com.au";
@@ -59,6 +61,8 @@ test.describe("every indexable route", () => {
 test.describe("accessibility", () => {
   for (const path of ["/", "/services/biv/", "/building-insurance-valuation/", "/quote-request/", "/testimonials/"]) {
     test(`${path} has no detectable WCAG A/AA violations`, async ({ page }) => {
+      // Entrance animations fade text in; measure contrast at its final state.
+      await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto(path);
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
       expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual([]);
@@ -129,48 +133,70 @@ test.describe("enquiry form", () => {
     await expect(page.locator(`[id="${describedBy}"]`)).toHaveText("Please enter your name.");
   });
 
-  async function fillValid(page: import("@playwright/test").Page) {
+  async function fillValid(page: Page, name: string) {
     await page.getByLabel("Building Insurance Valuation (Aust. wide)").check();
-    await page.getByLabel("Your name").fill("Jane Citizen");
+    await page.getByLabel("Your name").fill(name);
     await page.getByLabel(/^Phone/).fill("02 9999 0000");
     await page.getByRole("textbox", { name: /^Email/ }).fill("jane@example.com");
     await page.getByLabel("Property address").fill("1 Example Street, Sydney NSW 2000");
     await page.getByLabel("Call back").check();
   }
 
-  test("submits to the endpoint and shows success only when the server confirms", async ({ page }) => {
-    let payload: Record<string, unknown> | null = null;
-    await page.route("**/api/enquiry.php", async (route) => {
-      payload = route.request().postDataJSON();
-      await route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
-    });
+  const sentMessages = () =>
+    readFileSync(SMTP_SINK_FILE, "utf8")
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => (JSON.parse(line) as { message: string }).message);
+
+  test("sends the email and shows success only after the server confirms", async ({ page }, info) => {
+    const name = `Jane ${info.project.name} ${Date.now()}`;
     await page.goto("/quote-request/");
-    await fillValid(page);
+    await fillValid(page, name);
+    await page.waitForTimeout(3200); // the server rejects forms completed implausibly fast
     await page.getByRole("button", { name: "Send my request" }).click();
-    await expect(page.getByRole("status")).toContainText("your request is with us");
-    expect(payload).toMatchObject({ name: "Jane Citizen", services: ["Building Insurance Valuation (Aust. wide)"], website: "" });
+    await expect(page.getByRole("status").filter({ hasText: "your request is with us" })).toBeVisible();
+    expect(sentMessages().some((m) => m.includes(`Name: ${name}`))).toBe(true);
   });
 
-  test("shows the server's error and field messages on failure", async ({ page }) => {
-    await page.route("**/api/enquiry.php", (route) =>
-      route.fulfill({
-        status: 422,
-        contentType: "application/json",
-        body: JSON.stringify({ ok: false, message: "Please check the highlighted fields.", errors: { email: "Please enter a valid email address." } }),
-      }),
-    );
+  test("shows the server's message when it rejects a submission", async ({ page }) => {
     await page.goto("/contact-us/");
-    await fillValid(page);
+    await fillValid(page, "Too Quick");
     await page.getByRole("button", { name: "Send my request" }).click();
-    await expect(page.getByRole("alert").filter({ hasText: "Please check the highlighted fields." })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: /^Email/ })).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByRole("alert").filter({ hasText: "Please take a moment" })).toBeVisible();
+    expect(sentMessages().some((m) => m.includes("Name: Too Quick"))).toBe(false);
   });
 
-  test("shows a generic error when the network fails", async ({ page }) => {
-    await page.route("**/api/enquiry.php", (route) => route.abort());
+  test("shows a friendly error when the network fails", async ({ page }) => {
     await page.goto("/quote-request/");
-    await fillValid(page);
+    await fillValid(page, "Offline Person");
+    await page.route("**/quote-request/", (route) =>
+      route.request().method() === "POST" ? route.abort() : route.continue(),
+    );
     await page.getByRole("button", { name: "Send my request" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "couldn't send your request" })).toBeVisible();
   });
 });
+
+test("the form works without JavaScript", async ({ browser }, info) => {
+  test.skip(info.project.name !== "desktop", "one run is enough");
+  const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: "reduce" });
+  const page = await context.newPage();
+  const name = `No JS ${Date.now()}`;
+  await page.goto("/quote-request/");
+  await fillNoJs(page, name);
+  await page.getByRole("button", { name: "Send my request" }).click();
+  await expect(page.getByText("your request is with us")).toBeVisible();
+  expect(
+    readFileSync(SMTP_SINK_FILE, "utf8").includes(`Name: ${name}`),
+  ).toBe(true);
+  await context.close();
+});
+
+async function fillNoJs(page: Page, name: string) {
+  await page.getByLabel("Asbestos Report (Register + Management Plan)").check();
+  await page.getByLabel("Your name").fill(name);
+  await page.getByLabel(/^Phone/).fill("0400 000 000");
+  await page.getByRole("textbox", { name: /^Email/ }).fill("nojs@example.com");
+  await page.getByLabel("Property address").fill("2 Example Road, Wagga Wagga NSW");
+  await page.getByText("Email back", { exact: true }).click();
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ENQUIRY_SERVICES, enquirySchema } from "@/lib/enquiry-schema";
+import { ENQUIRY_SERVICES, enquirySchema } from "@/lib/enquiry/schema";
 
 const valid = {
   services: [ENQUIRY_SERVICES[0]],

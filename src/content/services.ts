@@ -19,6 +19,8 @@ export type Service = {
   slug: ServiceSlug;
   name: string;
   shortName: string;
+  /** Lower-case phrase for use mid-sentence, e.g. "asbestos reports". */
+  phrase: string;
   icon: ServiceIconName;
   metaTitle: string;
   metaDescription: string;
@@ -43,6 +45,7 @@ export const services: Service[] = [
     slug: "biv",
     name: "Building Insurance Valuation",
     shortName: "Insurance Valuations",
+    phrase: "building insurance valuations",
     icon: "building",
     metaTitle: "Building Insurance Valuations for Strata Schemes",
     metaDescription:
@@ -103,6 +106,7 @@ export const services: Service[] = [
     slug: "sfp",
     name: "Capital Works or Sinking Fund Plan",
     shortName: "Capital Works & Sinking Fund Plans",
+    phrase: "capital works and sinking fund plans",
     icon: "chart",
     metaTitle: "Capital Works & Sinking Fund Plans (10 and 15 Year)",
     metaDescription:
@@ -204,6 +208,7 @@ export const services: Service[] = [
     slug: "whs",
     name: "Work Health and Safety",
     shortName: "WHS Safety Reports",
+    phrase: "WHS safety reports",
     icon: "shield",
     metaTitle: "WHS & OHS Safety Reports for Strata Properties",
     metaDescription:
@@ -281,6 +286,7 @@ export const services: Service[] = [
     slug: "asb",
     name: "Asbestos Report",
     shortName: "Asbestos Reports",
+    phrase: "asbestos reports",
     icon: "alert",
     metaTitle: "Asbestos Registers & Management Plans for Strata",
     metaDescription:
