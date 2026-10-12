@@ -19,9 +19,37 @@ import { useEffect } from "react";
  *
  * Components stay server-rendered and style themselves with `var(--p)`. With
  * reduced motion (or without JavaScript) CSS shows every effect's end state.
+ *
+ * It also sets `data-header="hidden"` on `<html>` while the visitor scrolls
+ * down, so the header slides away, and removes it as soon as they scroll up.
  */
 export function ScrollDriver() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let last = window.scrollY;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 10) return;
+      const menuOpen = document.getElementById("mobile-menu")?.hidden === false;
+      const hide = y > last && y > 160 && !menuOpen;
+      root.toggleAttribute("data-header", false);
+      if (hide) root.setAttribute("data-header", "hidden");
+      last = y;
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+      root.removeAttribute("data-header");
+    };
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;

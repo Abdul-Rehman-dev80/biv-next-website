@@ -218,6 +218,16 @@ test.describe("scroll effects", () => {
     await expect.poll(() => opacity(page, "[data-diamond-home] + .seg")).toBeGreaterThan(0.9);
   });
 
+  test("the header hides on scroll down and returns on scroll up", async ({ page }) => {
+    await page.goto("/services/sfp/");
+    const header = page.locator("header.site-header");
+    const offset = () => header.evaluate((el) => el.getBoundingClientRect().bottom);
+    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
+    await expect.poll(offset).toBeLessThanOrEqual(1);
+    await page.evaluate(() => window.scrollTo({ top: 1000, behavior: "instant" }));
+    await expect.poll(offset).toBeGreaterThan(60);
+  });
+
   for (const mode of ["reduced motion", "no JavaScript"] as const) {
     test(`with ${mode}, every scene shows its end state`, async ({ browser }, info) => {
       test.skip(info.project.name !== "desktop", "one run is enough");
