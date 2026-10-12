@@ -142,11 +142,21 @@
   position: relative;
   height: calc(var(--len, 3) * 100svh);
 }
+/* The stage fills the screen; its padding keeps content clear of the header when it shows. */
 .pin > .pin-stage {
   position: sticky;
-  top: var(--header-h);
-  height: calc(100svh - var(--header-h));
+  top: 0;
+  height: 100svh;
+  padding-top: var(--header-h);
   overflow: hidden;
+}
+
+/* The header slides away while scrolling down and returns on scroll up. */
+.site-header {
+  transition: transform 0.2s ease-out;
+}
+html[data-header="hidden"] .site-header:not(:focus-within) {
+  transform: translate3d(0, -100%, 0);
 }
 
 /* Words light up one after another as the scene scrolls. */
@@ -214,6 +224,7 @@ html:not(.js) .pin > .pin-stage {
   position: relative;
   top: 0;
   height: auto;
+  padding-top: 0;
   min-height: calc(100svh - var(--header-h));
 }
 html:not(.js) .h-track {
@@ -239,6 +250,7 @@ html:not(.js) .h-track {
     position: relative;
     top: 0;
     height: auto;
+    padding-top: 0;
     min-height: calc(100svh - var(--header-h));
   }
   .h-track {
