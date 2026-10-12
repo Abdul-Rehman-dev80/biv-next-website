@@ -119,6 +119,14 @@ To deploy an update: pull the new code, run `npm install` (if dependencies chang
 
 To make `www.valuationcertificates.com.au` redirect to the apex domain, add a redirect in cPanel's *Redirects* (permanent, from `www.` to `https://valuationcertificates.com.au/`).
 
+## Deploying to Vercel (demo)
+
+The same code deploys to Vercel with no changes: import the repository, keep the Next.js preset and the default build settings, and use `main` as the production branch. Vercel does not use `server.js`.
+
+- Add the SMTP variables from the table above if the form should send email; without them the form shows its error message.
+- Rate limiting still works but is per function instance (Vercel's `/tmp` isn't shared), so it is weaker than on cPanel.
+- Until the project's production domain is `valuationcertificates.com.au`, every response carries `X-Robots-Tag: noindex, nofollow`, so a `*.vercel.app` demo is not indexed. Canonical URLs still point at the real domain.
+
 ### What the server sets
 
 Security headers for every response are configured in `next.config.ts`: Content-Security-Policy, HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy and Cross-Origin-Opener-Policy. Next.js serves hashed build assets with long-lived immutable caching and optimises images on the fly (AVIF/WebP at responsive sizes, cached for 30 days).
