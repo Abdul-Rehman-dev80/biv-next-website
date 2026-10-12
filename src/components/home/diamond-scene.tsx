@@ -1,7 +1,8 @@
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import { diamondPath, DIAMONDS } from "@/components/layout/logo";
 import { Pinned } from "@/components/motion/pinned";
+import { ServiceLink } from "@/components/sections/service-link";
+import { ServiceMark } from "@/components/sections/service-mark";
 import { Container } from "@/components/ui/container";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import { serviceDiamond, type Service } from "@/content/services";
@@ -47,30 +48,32 @@ export function DiamondScene({ services }: { services: Service[] }) {
               const start = 0.5 + i * 0.07;
               return (
                 <li key={service.slug} className="relative">
-                  <div data-diamond-home={key} className="size-14 sm:size-20">
-                    <svg
-                      viewBox={`${slotOf[key].cx - 22} ${slotOf[key].cy - 22} 44 44`}
-                      aria-hidden="true"
-                      className="size-full will-change-transform"
-                      style={{
-                        transform:
-                          "translate3d(calc((1 - var(--t)) * var(--dx, 0px)), calc((1 - var(--t)) * var(--dy, 0px)), 0) scale(calc(var(--ds, 1) + (1 - var(--ds, 1)) * var(--t)))",
-                      }}
-                    >
-                      <path d={diamondPath(slotOf[key].cx, slotOf[key].cy)} fill={fills[key]} />
-                    </svg>
-                  </div>
+                  <ServiceMark slug={service.slug}>
+                    <div data-diamond-home={key} className="size-14 sm:size-20">
+                      <svg
+                        viewBox={`${slotOf[key].cx - 22} ${slotOf[key].cy - 22} 44 44`}
+                        aria-hidden="true"
+                        className="size-full will-change-transform"
+                        style={{
+                          transform:
+                            "translate3d(calc((1 - var(--t)) * var(--dx, 0px)), calc((1 - var(--t)) * var(--dy, 0px)), 0) scale(calc(var(--ds, 1) + (1 - var(--ds, 1)) * var(--t)))",
+                        }}
+                      >
+                        <path d={diamondPath(slotOf[key].cx, slotOf[key].cy)} fill={fills[key]} />
+                      </svg>
+                    </div>
+                  </ServiceMark>
                   <div
                     className="seg opacity-(--t) transition-opacity focus-within:opacity-100!"
                     style={{ "--a": start, "--b": start + 0.2, translate: "0 calc((1 - var(--t)) * 24px)" } as CSSProperties}
                   >
                     <h3 className="mt-4 text-lg font-semibold sm:text-xl">
-                      <Link
+                      <ServiceLink
                         href={`/services/${service.slug}/`}
                         className="after:absolute after:inset-0 after:content-[''] hover:text-brand-700"
                       >
                         {service.shortName}
-                      </Link>
+                      </ServiceLink>
                     </h3>
                     <p className="mt-2 hidden text-[0.9375rem] leading-relaxed text-slate-600 sm:block">{service.summary}</p>
                     <span

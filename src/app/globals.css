@@ -159,6 +159,48 @@ html[data-header="hidden"] .site-header:not(:focus-within) {
   transform: translate3d(0, -100%, 0);
 }
 
+/*
+ * Page transitions (React <ViewTransition>, see ServiceMark). The clicked
+ * service's diamond morphs into the one on the service page while the rest
+ * of the page crossfades; the header holds still as a fixed reference.
+ */
+.site-header {
+  view-transition-name: site-header;
+}
+::view-transition {
+  /* Clicks during the short animation reach the new page instead of being lost. */
+  pointer-events: none;
+}
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-old(root) {
+  animation-duration: 180ms;
+}
+::view-transition-new(root) {
+  animation-duration: 300ms;
+}
+::view-transition-group(.morph) {
+  animation-duration: 450ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  z-index: 90;
+}
+::view-transition-image-pair(.morph) {
+  animation-name: diamond-blur;
+}
+@keyframes diamond-blur {
+  30% {
+    filter: blur(2px);
+  }
+}
+
 /* Words light up one after another as the scene scrolls. */
 .words > span {
   opacity: clamp(0.18, calc(var(--p) * (var(--n) + 4) * 1.15 - var(--i)), 1);
@@ -236,6 +278,12 @@ html:not(.js) .h-track {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
   [data-scroll] {
     --p: 1 !important;

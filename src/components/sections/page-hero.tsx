@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { DIAMONDS, diamondPath } from "@/components/layout/logo";
 import { Container } from "@/components/ui/container";
+import { cn } from "@/lib/cn";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
 
 /** How far each diamond drifts (in % of its own size) as the hero scrolls away. */
@@ -13,19 +14,23 @@ const drift: Record<string, [number, number]> = {
 
 /**
  * Header band for inner pages: breadcrumbs, eyebrow, H1 and lead paragraph,
- * with the BIV diamonds drifting apart as the page scrolls.
+ * with the BIV diamonds drifting apart as the page scrolls. An optional
+ * `mark` (a service's diamond) sits above the text, outside the entrance
+ * animation so a view transition can land it in place.
  */
 export function PageHero({
   eyebrow,
   title,
   lead,
   crumbs,
+  mark,
   children,
 }: {
   eyebrow?: string;
   title: string;
   lead?: string;
   crumbs: Crumb[];
+  mark?: ReactNode;
   children?: ReactNode;
 }) {
   return (
@@ -57,7 +62,8 @@ export function PageHero({
       </div>
       <Container className="py-12 sm:py-16 lg:py-24">
         <Breadcrumbs items={crumbs} inverted />
-        <div className="mt-8 max-w-3xl motion-safe:animate-rise">
+        {mark && <div className="mt-8">{mark}</div>}
+        <div className={cn("max-w-3xl motion-safe:animate-rise", mark ? "mt-5" : "mt-8")}>
           {eyebrow && <p className="text-sm font-semibold tracking-wide text-gold-400 uppercase">{eyebrow}</p>}
           <h1 className="mt-3 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">{title}</h1>
           {lead && <p className="mt-5 text-lg leading-relaxed text-slate-300 sm:text-xl">{lead}</p>}

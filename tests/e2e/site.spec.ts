@@ -228,6 +228,31 @@ test.describe("scroll effects", () => {
     await expect.poll(offset).toBeGreaterThan(60);
   });
 
+  test("a service's diamond morphs into the service page, even from below the fold", async ({ page }) => {
+    await page.goto("/services/");
+    // Record which view-transition snapshots each transition animates.
+    await page.evaluate(() => {
+      const w = window as Window & { __vt?: string[] };
+      w.__vt = [];
+      const start = document.startViewTransition.bind(document);
+      document.startViewTransition = ((arg: StartViewTransitionOptions) => {
+        const t = start(arg);
+        t.ready
+          .then(() => w.__vt!.push(...document.getAnimations().map((a) => (a.effect as KeyframeEffect).pseudoElement ?? "")))
+          .catch(() => {});
+        return t;
+      }) as typeof document.startViewTransition;
+    });
+    const card = page.locator('a[href="/services/asb/"]:has(h2)');
+    await card.scrollIntoViewIfNeeded();
+    await page.waitForLoadState("networkidle"); // the morph needs the prefetched page
+    await card.click();
+    await expect(page).toHaveURL(/\/services\/asb\/$/);
+    const snapshots = () => page.evaluate(() => (window as Window & { __vt?: string[] }).__vt ?? []);
+    await expect.poll(snapshots).toContain("::view-transition-old(diamond-red)");
+    await expect.poll(snapshots).toContain("::view-transition-new(diamond-red)");
+  });
+
   for (const mode of ["reduced motion", "no JavaScript"] as const) {
     test(`with ${mode}, every scene shows its end state`, async ({ browser }, info) => {
       test.skip(info.project.name !== "desktop", "one run is enough");
