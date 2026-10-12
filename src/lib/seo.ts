@@ -12,7 +12,7 @@ type PageMetaInput = {
   path: string;
   /** Pages such as the thank-you page should not be indexed. */
   noIndex?: boolean;
-  /** Use the title as-is instead of applying the "| Valuation Certificates" template. */
+  /** Use the title as-is instead of applying the "| BIV Reports" template. */
   absoluteTitle?: boolean;
 };
 

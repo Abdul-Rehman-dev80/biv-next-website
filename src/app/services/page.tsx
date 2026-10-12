@@ -25,7 +25,7 @@ export default function ServicesPage() {
       />
       <section aria-label="Services" className="py-16 sm:py-24">
         <Container>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div data-reveal-children className="grid gap-5 sm:grid-cols-2">
             {services.map((service) => (
               <ServiceCard key={service.slug} service={service} headingLevel={2} />
             ))}

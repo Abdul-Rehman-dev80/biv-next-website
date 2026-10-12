@@ -23,7 +23,7 @@ export default function TestimonialsPage() {
       />
       <section aria-label="Testimonials" className="py-16 sm:py-24">
         <Container>
-          <div className="columns-1 gap-5 md:columns-2 xl:columns-3">
+          <div data-reveal-children className="columns-1 gap-5 md:columns-2 xl:columns-3">
             {testimonials.map((t) => (
               <TestimonialCard key={`${t.name}-${t.organisation}`} testimonial={t} className="mb-5 h-auto break-inside-avoid" />
             ))}

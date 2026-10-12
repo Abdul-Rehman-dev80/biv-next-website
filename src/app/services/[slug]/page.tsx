@@ -57,7 +57,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
 
       <section className="py-16 sm:py-20">
         <Container className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
-          <article className="prose-site min-w-0">
+          <article data-reveal-children className="prose-site min-w-0">
             <div className="not-prose rounded-card border border-brand-200 bg-brand-50/60 p-6 sm:p-8">
               <h2 className="mt-0 text-2xl font-semibold">{service.why.heading}</h2>
               {service.why.paragraphs?.map((p) => (
@@ -123,7 +123,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
             </section>
           </article>
 
-          <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Service summary">
+          <aside data-reveal-children className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Service summary">
             <div className="rounded-card border border-line bg-white p-6 shadow-card">
               <ServiceIcon name={service.icon} />
               <h2 className="mt-4 text-lg font-semibold">At a glance</h2>

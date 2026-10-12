@@ -1,8 +1,8 @@
-# Valuation Certificates website
+# BIV Reports website
 
-Marketing site for **valuationcertificates.com.au**: building insurance valuations, capital works and sinking fund plans, WHS safety reports and asbestos reports for strata schemes, provided by BIV Reports Pty Limited.
+A rebuild of **www.biv.com.au** for BIV Reports Pty Limited: building insurance valuations, capital works and sinking fund plans, WHS safety reports and asbestos reports for strata schemes.
 
-The site keeps every URL of the client's existing site (biv.com.au) and its business facts, with a new brand, freshly written copy and a modern build.
+The site keeps every URL and business fact of the existing WordPress site, with a modern design built around the BIV four-diamond mark and scroll-driven animation on the home page.
 
 ## Stack
 
@@ -10,7 +10,8 @@ The site keeps every URL of the client's existing site (biv.com.au) and its busi
 - Tailwind CSS 4, with design tokens in `src/app/globals.css`
 - React Hook Form and Zod for the enquiry form; a Server Action validates again on the server and sends email with Nodemailer over SMTP
 - Vitest for unit tests and Playwright (with axe-core) for end-to-end tests
-- Runs as a Node.js app on cPanel ("Setup Node.js App"), started by `server.js`
+- Scroll animation with no animation library (see "Scroll effects" below)
+- Runs as a Node.js app on cPanel ("Setup Node.js App"), started by `server.js`, or on Vercel
 
 ## Routes
 
@@ -43,6 +44,8 @@ src/
   app/              routes, layout, sitemap, robots, error and 404 pages
   app/actions/      the enquiry Server Action
   components/       layout (header, nav, footer), sections, form and UI primitives
+  components/home/  the home page's scroll scenes
+  components/motion/ the scroll driver and pinned-scene helpers
   content/          all copy and business details (site.ts, services.ts, faqs.ts, testimonials.ts)
   lib/              SEO and structured-data helpers; lib/enquiry/ holds validation, rate limiting and email
 server.js           production entry point for cPanel/Passenger
@@ -51,6 +54,16 @@ tests/e2e/          Playwright tests and a local SMTP sink
 ```
 
 To change wording, phone number, email or services, edit the files in `src/content/`; components don't hard-code business details.
+
+## Scroll effects
+
+The home page is a sequence of scroll-driven scenes: the hero photo zooms as it scrolls away, the four BIV diamonds fly apart to the four services, a statement lights up word by word, an exploded building assembles floor by floor beside the valuation steps, a framed photo opens to full screen under counting figures, and client quotes slide sideways. Inner pages get a diamond hero and staged fade-ins.
+
+How it works:
+
+- `ScrollDriver` (`src/components/motion/scroll-driver.tsx`) is the only scroll listener. It writes a progress value `--p` (0 to 1) onto each `[data-scroll]` element and reveals `[data-reveal]` elements as they enter the viewport.
+- Everything else is CSS: components are server-rendered and use `var(--p)` in transforms, opacity and clip paths. `Pinned` makes a sticky stage; `seg(a, b)` or the `.seg` class maps part of a scene's progress to `--t`.
+- With `prefers-reduced-motion: reduce`, or without JavaScript, every scene shows its finished state and pinned sections collapse to normal height (rules at the end of `globals.css`).
 
 ## Local development
 
@@ -75,7 +88,7 @@ npm run test:e2e    # Playwright, against the production build (run `npm run bui
 npm run check       # lint + typecheck + unit tests + build
 ```
 
-The end-to-end suite starts `server.js` and a small local SMTP sink, then checks every route (status, single H1, canonical URL, Open Graph URL, valid JSON-LD, no other domain in metadata, no horizontal overflow, no failed requests or console errors), unique titles and descriptions, WCAG 2.2 AA rules with axe, keyboard skip link, desktop dropdowns, the mobile menu, the 404 page, FAQ accordions, and the enquiry form (client validation, real email delivery, server rejection, network failure, and submission with JavaScript disabled). It runs on a desktop and a mobile viewport. Playwright needs Chromium: `npx playwright install chromium` if it isn't installed.
+The end-to-end suite starts `server.js` and a small local SMTP sink, then checks every route (status, single H1, canonical URL, Open Graph URL, valid JSON-LD, no other domain in metadata, no horizontal overflow, no failed requests or console errors), unique titles and descriptions, WCAG 2.2 AA rules with axe, keyboard skip link, desktop dropdowns, the mobile menu, the 404 page, FAQ accordions, the enquiry form (client validation, real email delivery, server rejection, network failure, and submission with JavaScript disabled), and the scroll effects (progress tracking, and the finished state with reduced motion or no JavaScript). It runs on a desktop and a mobile viewport. Playwright needs Chromium: `npx playwright install chromium` if it isn't installed.
 
 ## Enquiry form and email
 
@@ -96,7 +109,7 @@ See `.env.example`.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SMTP_HOST` | yes | SMTP server, e.g. `mail.valuationcertificates.com.au` |
+| `SMTP_HOST` | yes | SMTP server, e.g. `mail.biv.com.au` |
 | `SMTP_PORT` | no | `465` (implicit TLS, default) or `587` (STARTTLS) |
 | `SMTP_USER`, `SMTP_PASS` | yes | SMTP mailbox login |
 | `ENQUIRY_TO` | yes | Mailbox that receives enquiries |
@@ -108,16 +121,16 @@ See `.env.example`.
 
 ## Deploying to cPanel
 
-1. **Domain and email.** Point `valuationcertificates.com.au` at the cPanel account. Create the sending mailbox (e.g. `no-reply@`) and the receiving mailbox. In *Email Deliverability*, make sure SPF and DKIM are valid for the domain, and add a DMARC record if there isn't one.
+1. **Domain and email.** Point `biv.com.au` at the cPanel account. Create the sending mailbox (e.g. `no-reply@`) and the receiving mailbox. In *Email Deliverability*, make sure SPF and DKIM are valid for the domain, and add a DMARC record if there isn't one.
 2. **SSL.** Enable AutoSSL (or install a certificate) for the apex and `www`. In *Domains*, turn on *Force HTTPS Redirect*.
-3. **Upload the code.** Clone the repository into a folder outside `public_html`, e.g. `/home/<user>/valuationcertificates` (cPanel's *Git Version Control* can do this).
+3. **Upload the code.** Clone the repository into a folder outside `public_html`, e.g. `/home/<user>/biv-website` (cPanel's *Git Version Control* can do this).
 4. **Create the app.** In *Setup Node.js App*: Node.js version 22 (or the newest 20.9+ offered), Application mode *Production*, Application root = that folder, Application URL = the domain, Application startup file = `server.js`. Add the environment variables from the table above.
 5. **Install and build.** Click *Run NPM Install*. Then open the app's terminal (the command to enter the virtual environment is shown at the top of the app page) and run `npm run build`.
 6. **Start.** Click *Restart*. Visit the site and send a test enquiry.
 
 To deploy an update: pull the new code, run `npm install` (if dependencies changed) and `npm run build` in the app's environment, then restart the app.
 
-To make `www.valuationcertificates.com.au` redirect to the apex domain, add a redirect in cPanel's *Redirects* (permanent, from `www.` to `https://valuationcertificates.com.au/`).
+Canonical URLs use `https://www.biv.com.au`, as the existing site does. Add a permanent redirect in cPanel's *Redirects* from `biv.com.au` to `https://www.biv.com.au/`.
 
 ## Deploying to Vercel (demo)
 
@@ -125,7 +138,7 @@ The same code deploys to Vercel with no changes: import the repository, keep the
 
 - Add the SMTP variables from the table above if the form should send email; without them the form shows its error message.
 - Rate limiting still works but is per function instance (Vercel's `/tmp` isn't shared), so it is weaker than on cPanel.
-- Until the project's production domain is `valuationcertificates.com.au`, every response carries `X-Robots-Tag: noindex, nofollow`, so a `*.vercel.app` demo is not indexed. Canonical URLs still point at the real domain.
+- Until the project's production domain is `biv.com.au`, every response carries `X-Robots-Tag: noindex, nofollow`, so a `*.vercel.app` demo is not indexed. Canonical URLs still point at the real domain.
 
 ### What the server sets
 
@@ -133,7 +146,7 @@ Security headers for every response are configured in `next.config.ts`: Content-
 
 ## SEO
 
-- Every page has its own title, meta description, canonical URL and Open Graph/Twitter tags (`src/lib/seo.ts`), all on `https://valuationcertificates.com.au`.
+- Every page has its own title, meta description, canonical URL and Open Graph/Twitter tags (`src/lib/seo.ts`), all on `https://www.biv.com.au`.
 - Structured data: `ProfessionalService` and `WebSite` site-wide, `BreadcrumbList` on inner pages, `Service` on service pages and `FAQPage` on FAQ pages. Only facts published on the site are used: no ratings, reviews or street address.
 - `sitemap.xml` lists the 15 indexable pages; `robots.txt` points to it.
 - No analytics, tracking or cookies are used, so no cookie banner is needed. If analytics are added later, update the privacy section on `/legal/` and the CSP in `next.config.ts`.

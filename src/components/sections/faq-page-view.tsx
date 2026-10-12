@@ -32,7 +32,7 @@ export function FaqPageView({ slug }: { slug: ServiceSlug }) {
       <section className="py-16 sm:py-20">
         <Container className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
           <FaqList faqs={page.faqs} />
-          <aside className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Related pages">
+          <aside data-reveal-children className="space-y-5 lg:sticky lg:top-28 lg:self-start" aria-label="Related pages">
             <Link
               href={`/services/${slug}/`}
               className="group block rounded-card bg-ink-900 p-6 text-slate-300 transition-colors hover:bg-ink-800"

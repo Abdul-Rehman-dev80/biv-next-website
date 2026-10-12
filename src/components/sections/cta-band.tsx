@@ -13,10 +13,10 @@ export function CtaBand({
   return (
     <section className="py-16 sm:py-20">
       <Container>
-        <div className="relative isolate overflow-hidden rounded-[2rem] bg-ink-900 px-6 py-12 sm:px-12 sm:py-16 lg:flex lg:items-center lg:justify-between lg:gap-10">
+        <div data-reveal className="relative isolate overflow-hidden rounded-[2rem] bg-ink-900 px-6 py-12 sm:px-12 sm:py-16 lg:flex lg:items-center lg:justify-between lg:gap-10">
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[radial-gradient(40rem_24rem_at_100%_0%,rgb(18_178_148/0.45),transparent),radial-gradient(30rem_20rem_at_0%_100%,rgb(245_192_74/0.18),transparent)]"
+            className="absolute inset-0 -z-10 bg-[radial-gradient(40rem_24rem_at_100%_0%,rgb(79_105_184/0.45),transparent),radial-gradient(30rem_20rem_at_0%_100%,rgb(231_199_51/0.18),transparent)]"
           />
           <div className="max-w-2xl">
             <h2 className="text-3xl font-bold text-white sm:text-4xl">{title}</h2>

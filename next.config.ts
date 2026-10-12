@@ -35,7 +35,7 @@ const securityHeaders = [
 // A Vercel deployment not yet on the real domain (e.g. a *.vercel.app client
 // demo) must not be indexed, or it would compete with the live site.
 const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "";
-if (process.env.VERCEL && !productionHost.endsWith("valuationcertificates.com.au")) {
+if (process.env.VERCEL && !productionHost.endsWith("biv.com.au")) {
   securityHeaders.push({ key: "X-Robots-Tag", value: "noindex, nofollow" });
 }
 

@@ -22,6 +22,10 @@ export function SiteHeader() {
           </a>
         </SiteNav>
       </Container>
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 -bottom-px h-0.5 origin-left scale-x-(--page-p) bg-gradient-to-r from-diamond-blue via-diamond-green to-diamond-red"
+      />
     </header>
   );
 }
