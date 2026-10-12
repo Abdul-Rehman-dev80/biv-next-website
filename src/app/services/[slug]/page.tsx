@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/sections/cta-band";
 import { PageHero } from "@/components/sections/page-hero";
 import { ServiceIcon } from "@/components/sections/service-icon";
+import { MorphScrollReset } from "@/components/sections/service-link";
+import { ServiceMark } from "@/components/sections/service-mark";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -36,6 +38,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
 
   return (
     <>
+      <MorphScrollReset />
       <PageHero
         eyebrow={service.name}
         title={service.headline}
@@ -44,6 +47,11 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
           { name: "Services", path: "/services/" },
           { name: service.name, path },
         ]}
+        mark={
+          <ServiceMark slug={service.slug}>
+            <ServiceIcon name={service.icon} size="lg" />
+          </ServiceMark>
+        }
       >
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <ButtonLink href="/quote-request/" size="lg">
