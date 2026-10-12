@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Colours are chosen for WCAG AA contrast on their intended
+ * backgrounds: ink/slate text on white and paper, white text on brand-700+.
+ */
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink-950: #06121f;
+  --color-ink-900: #0b1f33;
+  --color-ink-800: #132c47;
+  --color-ink-700: #1e3a5c;
+
+  --color-brand-50: #ecfdf8;
+  --color-brand-100: #d1faee;
+  --color-brand-200: #a6f2dd;
+  --color-brand-300: #6de4c7;
+  --color-brand-400: #34cdad;
+  --color-brand-500: #12b294;
+  --color-brand-600: #08806d;
+  --color-brand-700: #0b7263;
+  --color-brand-800: #0e5a50;
+  --color-brand-900: #0f4a43;
+
+  --color-gold-300: #f9d77e;
+  --color-gold-400: #f5c04a;
+  --color-gold-500: #e9a621;
+
+  --color-paper: #f6f8f7;
+  --color-line: #e2e8ec;
+
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 2px rgb(11 31 51 / 0.04), 0 8px 24px -12px rgb(11 31 51 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(11 31 51 / 0.06), 0 20px 40px -16px rgb(11 31 51 / 0.22);
+
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white text-slate-700 antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink-900 tracking-tight text-balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-ink-900;
+  }
+}
+
+@layer components {
+  /* Long-form copy (legal, FAQs, service detail). */
+  .prose-site {
+    @apply max-w-none text-base leading-relaxed text-slate-700 sm:text-[1.0625rem];
+  }
+  .prose-site > * + * {
+    @apply mt-5;
+  }
+  .prose-site h2 {
+    @apply mt-12 text-2xl font-semibold sm:text-3xl;
+  }
+  .prose-site h3 {
+    @apply mt-8 text-xl font-semibold;
+  }
+  .prose-site ul {
+    @apply list-disc space-y-2 pl-5 marker:text-brand-600;
+  }
+  .prose-site ol {
+    @apply list-decimal space-y-2 pl-5 marker:text-brand-700;
+  }
+  .prose-site a {
+    @apply font-medium text-brand-700 underline decoration-brand-300 underline-offset-4 hover:decoration-brand-600;
+  }
+  .prose-site strong {
+    @apply font-semibold text-ink-900;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
